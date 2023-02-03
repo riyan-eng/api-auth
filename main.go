@@ -6,6 +6,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/riyan-eng/api-auth/config"
+	"github.com/riyan-eng/api-auth/module/management"
 )
 
 func init() {
@@ -16,6 +17,8 @@ func init() {
 func main() {
 	app := fiber.New()
 	app.Use(logger.New())
+
+	management.Setup(app)
 
 	app.Listen(os.Getenv("SERVER_URL"))
 }
