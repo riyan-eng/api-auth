@@ -4,6 +4,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/riyan-eng/api-auth/module/management/controller/dto"
 	"github.com/riyan-eng/api-auth/module/management/service"
+	"github.com/riyan-eng/api-auth/util"
 )
 
 // type AuthController interface {
@@ -35,9 +36,15 @@ func (service authService) Login(c *fiber.Ctx) error {
 	}
 
 	// validate body
+	if err := util.Validate(body); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"data":    err,
+			"message": "bad",
+		})
+	}
 
 	// communicate service
-	if err := service.service.Login(c.Context()); err != nil {
+	if err := service.service.Login(c.Context(), &body); err != nil {
 		return c.Status(fiber.StatusBadGateway).JSON(fiber.Map{
 			"data":    err.Error(),
 			"message": "bad",

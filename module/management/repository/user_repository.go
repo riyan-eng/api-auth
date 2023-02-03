@@ -4,11 +4,12 @@ import (
 	"database/sql"
 	"fmt"
 
+	"github.com/riyan-eng/api-auth/module/management/controller/dto"
 	"github.com/valyala/fasthttp"
 )
 
 type UserInterface interface {
-	GetUser(*fasthttp.RequestCtx) error
+	GetUser(*fasthttp.RequestCtx, *dto.LoginReq) error
 }
 
 type database struct {
@@ -21,16 +22,17 @@ func NewUserInterface(DB *sql.DB) UserInterface {
 	}
 }
 
-func (db *database) GetUser(ctx *fasthttp.RequestCtx) error {
-
+func (db *database) GetUser(ctx *fasthttp.RequestCtx, body *dto.LoginReq) error {
 	var name string
-	fmt.Println("jjj")
-	rows := db.Db.QueryRowContext(ctx, "select name from management.users where name='RIYAN'").Scan(&name)
+	query := fmt.Sprintf(`
+		select name from management.users where name='%v'
+	`, body.UserName)
+	err := db.Db.QueryRowContext(ctx, query).Scan(&name)
 	// if err != nil {
 	// 	return err
 	// }
 
 	fmt.Println(name)
-	fmt.Println(rows)
-	return nil
+	// fmt.Println(rows)
+	return err
 }

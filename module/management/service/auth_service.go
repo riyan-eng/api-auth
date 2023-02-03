@@ -1,12 +1,15 @@
 package service
 
 import (
+	"fmt"
+
+	"github.com/riyan-eng/api-auth/module/management/controller/dto"
 	"github.com/riyan-eng/api-auth/module/management/repository"
 	"github.com/valyala/fasthttp"
 )
 
 type AuthService interface {
-	Login(*fasthttp.RequestCtx) error
+	Login(*fasthttp.RequestCtx, *dto.LoginReq) error
 	Logout() error
 }
 
@@ -20,8 +23,9 @@ func NewAuthService(repository repository.UserInterface) AuthService {
 	}
 }
 
-func (repo *userController) Login(ctx *fasthttp.RequestCtx) error {
-	err := repo.repo.GetUser(ctx)
+func (repo *userController) Login(ctx *fasthttp.RequestCtx, body *dto.LoginReq) error {
+	fmt.Println(body)
+	err := repo.repo.GetUser(ctx, body)
 	return err
 }
 
