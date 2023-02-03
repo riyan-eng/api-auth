@@ -2,6 +2,7 @@ package controller
 
 import (
 	"github.com/gofiber/fiber/v2"
+	"github.com/riyan-eng/api-auth/module/management/controller/dto"
 	"github.com/riyan-eng/api-auth/module/management/service"
 )
 
@@ -24,7 +25,19 @@ func NewAuthController(service service.AuthService, route *fiber.App) {
 }
 
 func (service authService) Login(c *fiber.Ctx) error {
-	if err := service.service.Login(); err != nil {
+	// parse body
+	var body dto.LoginReq
+	if err := c.BodyParser(&body); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"data":    err.Error(),
+			"message": "bad",
+		})
+	}
+
+	// validate body
+
+	// communicate service
+	if err := service.service.Login(c.Context()); err != nil {
 		return c.Status(fiber.StatusBadGateway).JSON(fiber.Map{
 			"data":    err.Error(),
 			"message": "bad",

@@ -26,18 +26,12 @@ func DatabaseConnection() {
 	DB, _ = sql.Open("postgres", dSN)
 
 	// connection pool
-
 	DB.SetMaxOpenConns(maxConn)
 	DB.SetMaxIdleConns(maxIdleConn)
 	DB.SetConnMaxLifetime(time.Duration(maxLifetimeConn))
-	// if err != nil {
-	// 	fmt.Println("error, create connection pool")
-	// }
 
 	if err := DB.Ping(); err != nil {
-		// fmt.Println(err.Error())
 		log.Fatal("error, not connected to database")
-		// fmt.Println("error, not connected to database")
 	}
 
 	fmt.Println("connected to database", os.Getenv("DB_NAME"))

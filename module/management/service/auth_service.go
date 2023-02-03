@@ -1,9 +1,12 @@
 package service
 
-import "github.com/riyan-eng/api-auth/module/management/repository"
+import (
+	"github.com/riyan-eng/api-auth/module/management/repository"
+	"github.com/valyala/fasthttp"
+)
 
 type AuthService interface {
-	Login() error
+	Login(*fasthttp.RequestCtx) error
 	Logout() error
 }
 
@@ -17,8 +20,8 @@ func NewAuthService(repository repository.UserInterface) AuthService {
 	}
 }
 
-func (repo *userController) Login() error {
-	err := repo.repo.GetUser()
+func (repo *userController) Login(ctx *fasthttp.RequestCtx) error {
+	err := repo.repo.GetUser(ctx)
 	return err
 }
 

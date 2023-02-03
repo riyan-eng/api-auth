@@ -1,13 +1,14 @@
 package repository
 
 import (
-	"context"
 	"database/sql"
 	"fmt"
+
+	"github.com/valyala/fasthttp"
 )
 
 type UserInterface interface {
-	GetUser() error
+	GetUser(*fasthttp.RequestCtx) error
 }
 
 type database struct {
@@ -20,17 +21,16 @@ func NewUserInterface(DB *sql.DB) UserInterface {
 	}
 }
 
-func (db *database) GetUser() error {
+func (db *database) GetUser(ctx *fasthttp.RequestCtx) error {
 
-	type User struct {
-		Name string
-	}
+	var name string
 	fmt.Println("jjj")
-	rows := db.Db.QueryRowContext(context.Background(), "select * from management.users where name=RIYAN").Scan(&User{})
+	rows := db.Db.QueryRowContext(ctx, "select name from management.users where name='RIYAN'").Scan(&name)
 	// if err != nil {
 	// 	return err
 	// }
 
+	fmt.Println(name)
 	fmt.Println(rows)
 	return nil
 }
