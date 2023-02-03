@@ -8,3 +8,7 @@ type User struct {
 	Name      string    `gorm:"column:name;unique"`
 	Password  string    `gorm:"column:password"`
 }
+
+func (User) TableName() string {
+	return "management.users"
+}

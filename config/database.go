@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/riyan-eng/api-auth/util"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -48,6 +49,9 @@ func DatabaseConnection() {
 	if err := connectionPool.Ping(); err != nil {
 		fmt.Println("error, not sent ping to database")
 	}
+
+	// migration
+	DB.AutoMigrate(&util.User{})
 
 	fmt.Println("connected to database", os.Getenv("DB_NAME"))
 }
