@@ -1,0 +1,3 @@
+p, anonymous, /auth/register, (POST)
+p, anonymous, /auth/login, (POST)
+p, admin, /auth/logout, (POST)

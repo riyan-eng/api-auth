@@ -100,8 +100,8 @@ func (service authService) Logout(c *fiber.Ctx) error {
 	bearToken := c.Get("Authorization")
 	data, err := middleware.ExtractTokenMetadata(bearToken)
 
-	fmt.Println(data)
-	fmt.Println(err)
+	fmt.Println("1", data)
+	fmt.Println("2", err)
 
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"data":    "logout",
