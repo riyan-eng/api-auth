@@ -3,6 +3,7 @@ package service
 import (
 	"fmt"
 
+	"github.com/riyan-eng/api-auth/middleware"
 	"github.com/riyan-eng/api-auth/module/management/controller/dto"
 	"github.com/riyan-eng/api-auth/module/management/repository"
 	"github.com/valyala/fasthttp"
@@ -26,6 +27,9 @@ func NewAuthService(repository repository.UserInterface) AuthService {
 func (repo *userController) Login(ctx *fasthttp.RequestCtx, body *dto.LoginReq) error {
 	fmt.Println(body)
 	err := repo.repo.GetUser(ctx, body)
+
+	token, err := middleware.GenerateNewAccessToken()
+	fmt.Println(token)
 	return err
 }
 

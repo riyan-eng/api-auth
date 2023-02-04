@@ -27,12 +27,13 @@ func (db *database) GetUser(ctx *fasthttp.RequestCtx, body *dto.LoginReq) error 
 	query := fmt.Sprintf(`
 		select name from management.users where name='%v'
 	`, body.UserName)
-	err := db.Db.QueryRowContext(ctx, query).Scan(&name)
+	// err := db.Db.QueryRowContext(ctx, query).Scan(&name)
 	// if err != nil {
 	// 	return err
 	// }
 
 	fmt.Println(name)
+	fmt.Println(query)
 	// fmt.Println(rows)
-	return err
+	return nil
 }

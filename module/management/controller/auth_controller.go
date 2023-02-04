@@ -1,7 +1,10 @@
 package controller
 
 import (
+	"fmt"
+
 	"github.com/gofiber/fiber/v2"
+	"github.com/riyan-eng/api-auth/middleware"
 	"github.com/riyan-eng/api-auth/module/management/controller/dto"
 	"github.com/riyan-eng/api-auth/module/management/service"
 	"github.com/riyan-eng/api-auth/util"
@@ -22,7 +25,7 @@ func NewAuthController(service service.AuthService, route *fiber.App) {
 	}
 	authRoute := route.Group("/auth")
 	authRoute.Post("/login", s.Login)
-	authRoute.Post("/logout", s.Logout)
+	authRoute.Post("/logout", middleware.JWTProtected(), s.Logout)
 }
 
 func (service authService) Login(c *fiber.Ctx) error {
@@ -50,6 +53,8 @@ func (service authService) Login(c *fiber.Ctx) error {
 			"message": "bad",
 		})
 	}
+
+	// response ok
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"data":    "login",
 		"message": "ok",
@@ -57,6 +62,12 @@ func (service authService) Login(c *fiber.Ctx) error {
 }
 
 func (service authService) Logout(c *fiber.Ctx) error {
+	bearToken := c.Get("Authorization")
+	data, err := middleware.ExtractTokenMetadata(bearToken)
+
+	fmt.Println(data)
+	fmt.Println(err)
+
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"data":    "logout",
 		"message": "ok",

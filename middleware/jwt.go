@@ -26,13 +26,13 @@ func jwtError(c *fiber.Ctx, err error) error {
 	if err.Error() == "Missing or malformed JWT" {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"data":    err.Error(),
-			"message": "fail",
+			"message": "bad",
 		})
 	}
 
 	return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 		"data":    err.Error(),
-		"message": "fail",
+		"message": "bad",
 	})
 }
 
@@ -56,11 +56,11 @@ func GenerateNewAccessToken() (string, error) {
 
 // parser
 type TokenMetadata struct {
-	Expires uint64
+	Expires int64
 }
 
-func ExtractTokenMetadata(c *fiber.Ctx) (*TokenMetadata, error) {
-	token, err := verifyToken(c)
+func ExtractTokenMetadata(bearToken string) (*TokenMetadata, error) {
+	token, err := verifyToken(bearToken)
 	if err != nil {
 		return nil, err
 	}
@@ -68,7 +68,7 @@ func ExtractTokenMetadata(c *fiber.Ctx) (*TokenMetadata, error) {
 	// Setting and checking token and credentials.
 	claims, ok := token.Claims.(jwt.MapClaims)
 	if ok && token.Valid {
-		expires := uint64(claims["exp"].(float64))
+		expires := int64(claims["exp"].(float64))
 		return &TokenMetadata{
 			Expires: expires,
 		}, nil
@@ -76,8 +76,7 @@ func ExtractTokenMetadata(c *fiber.Ctx) (*TokenMetadata, error) {
 	return nil, err
 }
 
-func extractToken(c *fiber.Ctx) string {
-	bearToken := c.Get("Authorization")
+func extractToken(bearToken string) string {
 	onlyToken := strings.Split(bearToken, " ")
 	if len(onlyToken) == 2 {
 		return onlyToken[1]
@@ -85,8 +84,8 @@ func extractToken(c *fiber.Ctx) string {
 	return ""
 }
 
-func verifyToken(c *fiber.Ctx) (*jwt.Token, error) {
-	tokenString := extractToken(c)
+func verifyToken(bearToken string) (*jwt.Token, error) {
+	tokenString := extractToken(bearToken)
 	token, err := jwt.Parse(tokenString, jwtKeyFunc)
 	if err != nil {
 		return nil, err
