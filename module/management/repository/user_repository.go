@@ -42,10 +42,10 @@ func (db *database) Create(entityReq *entity.Register) error {
 func (db *database) GetUser(ctx *fasthttp.RequestCtx, body *dto.LoginReq) (*model.User, error) {
 	user := new(model.User)
 	query := fmt.Sprintf(`
-		select id, name, password from management.users where name='%v'
+		select id, name, password, role from management.users where name='%v'
 	`, body.UserName)
 
-	err := db.Db.QueryRowContext(ctx, query).Scan(&user.ID, &user.Name, &user.Password)
+	err := db.Db.QueryRowContext(ctx, query).Scan(&user.ID, &user.Name, &user.Password, &user.Role)
 	if err == sql.ErrNoRows {
 		return nil, errors.New("no data")
 	} else if err != nil {

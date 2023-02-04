@@ -42,12 +42,14 @@ type AccessToken struct {
 	Expired int64
 }
 
-func GenerateNewAccessToken() (*AccessToken, error) {
+func GenerateNewAccessToken(userID string, role []string) (*AccessToken, error) {
 	accessToken := new(AccessToken)
 	secret := os.Getenv("JWT_SECRET_KEY")
 	minutesCount, _ := strconv.Atoi(os.Getenv("JWT_SECRET_KEY_EXPIRE_MINUTE_COUNT"))
 	claims := jwt.MapClaims{}
 	claims["exp"] = time.Now().Add(time.Minute * time.Duration(minutesCount)).Unix()
+	claims["user_id"] = userID
+	claims["role"] = role
 	accessToken.Expired = claims["exp"].(int64)
 
 	// Create a new JWT access token with claims.
@@ -65,6 +67,8 @@ func GenerateNewAccessToken() (*AccessToken, error) {
 // parser
 type TokenMetadata struct {
 	Expires int64
+	UserID  string
+	Role    []interface{}
 }
 
 func ExtractTokenMetadata(bearToken string) (*TokenMetadata, error) {
@@ -77,8 +81,14 @@ func ExtractTokenMetadata(bearToken string) (*TokenMetadata, error) {
 	claims, ok := token.Claims.(jwt.MapClaims)
 	if ok && token.Valid {
 		expires := int64(claims["exp"].(float64))
+		userID := claims["user_id"].(string)
+		role := claims["role"].([]interface{})
+		// fmt.Println(role)
+		// fmt.Println(reflect.TypeOf(role))
 		return &TokenMetadata{
 			Expires: expires,
+			UserID:  userID,
+			Role:    role,
 		}, nil
 	}
 	return nil, err

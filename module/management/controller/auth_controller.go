@@ -1,8 +1,6 @@
 package controller
 
 import (
-	"fmt"
-
 	"github.com/gofiber/fiber/v2"
 	"github.com/riyan-eng/api-auth/middleware"
 	"github.com/riyan-eng/api-auth/module/management/controller/dto"
@@ -99,12 +97,18 @@ func (service authService) Login(c *fiber.Ctx) error {
 func (service authService) Logout(c *fiber.Ctx) error {
 	bearToken := c.Get("Authorization")
 	data, err := middleware.ExtractTokenMetadata(bearToken)
+	if err != nil {
+		return c.Status(fiber.StatusBadGateway).JSON(fiber.Map{
+			"data":    err.Error(),
+			"message": "bad",
+		})
+	}
 
-	fmt.Println("1", data)
-	fmt.Println("2", err)
+	// fmt.Println("1", data)
+	// fmt.Println("2", err)
 
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
-		"data":    "logout",
+		"data":    data,
 		"message": "ok",
 	})
 }

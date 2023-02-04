@@ -64,7 +64,7 @@ func (repo *userController) Login(ctx *fasthttp.RequestCtx, body *dto.LoginReq) 
 	entity.Name = user.Name
 
 	// communicate jwt middleware
-	token, err := middleware.GenerateNewAccessToken()
+	token, err := middleware.GenerateNewAccessToken(user.ID, []string{user.Role})
 	if err != nil {
 		return nil, err
 	}
