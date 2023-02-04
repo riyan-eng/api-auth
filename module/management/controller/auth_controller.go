@@ -16,16 +16,50 @@ import (
 // }
 
 type authService struct {
-	service service.AuthService
+	Auth service.AuthService
 }
 
 func NewAuthController(service service.AuthService, route *fiber.App) {
 	s := &authService{
-		service: service,
+		Auth: service,
 	}
 	authRoute := route.Group("/auth")
+	authRoute.Post("/register", s.Register)
 	authRoute.Post("/login", s.Login)
 	authRoute.Post("/logout", middleware.JWTProtected(), s.Logout)
+}
+
+func (service authService) Register(c *fiber.Ctx) error {
+	// parse body
+	body := new(dto.RegisterReq)
+	if err := c.BodyParser(body); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"data":    err.Error(),
+			"message": "bad",
+		})
+	}
+
+	// validate body
+	if err := util.Validate(body); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"data":    err,
+			"message": "bad",
+		})
+	}
+
+	// communicate service
+	err := service.Auth.Register(body)
+	if err != nil {
+		return c.Status(fiber.StatusBadGateway).JSON(fiber.Map{
+			"data":    err.Error(),
+			"message": "bad",
+		})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"data":    "register",
+		"message": "ok",
+	})
 }
 
 func (service authService) Login(c *fiber.Ctx) error {
@@ -47,7 +81,7 @@ func (service authService) Login(c *fiber.Ctx) error {
 	}
 
 	// communicate service
-	entity, err := service.service.Login(c.Context(), &body)
+	entity, err := service.Auth.Login(c.Context(), &body)
 	if err != nil {
 		return c.Status(fiber.StatusBadGateway).JSON(fiber.Map{
 			"data":    err.Error(),
