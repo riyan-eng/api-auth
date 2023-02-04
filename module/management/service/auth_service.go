@@ -2,6 +2,7 @@ package service
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/riyan-eng/api-auth/middleware"
 	"github.com/riyan-eng/api-auth/module/management/controller/dto"
@@ -33,6 +34,7 @@ func (repo *userController) Register(body *dto.RegisterReq) error {
 
 	// generate hash password
 	passwordHash := util.HashPassword(body.Password)
+	fmt.Println(passwordHash)
 	entityReq.UserName = body.UserName
 	entityReq.Password = passwordHash
 
