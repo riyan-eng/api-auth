@@ -1,16 +1,15 @@
 package service
 
 import (
-	"fmt"
-
 	"github.com/riyan-eng/api-auth/middleware"
 	"github.com/riyan-eng/api-auth/module/management/controller/dto"
 	"github.com/riyan-eng/api-auth/module/management/repository"
+	"github.com/riyan-eng/api-auth/module/management/service/entity"
 	"github.com/valyala/fasthttp"
 )
 
 type AuthService interface {
-	Login(*fasthttp.RequestCtx, *dto.LoginReq) error
+	Login(*fasthttp.RequestCtx, *dto.LoginReq) (*entity.LoginEntity, error)
 	Logout() error
 }
 
@@ -24,13 +23,27 @@ func NewAuthService(repository repository.UserInterface) AuthService {
 	}
 }
 
-func (repo *userController) Login(ctx *fasthttp.RequestCtx, body *dto.LoginReq) error {
-	fmt.Println(body)
-	err := repo.repo.GetUser(ctx, body)
+func (repo *userController) Login(ctx *fasthttp.RequestCtx, body *dto.LoginReq) (*entity.LoginEntity, error) {
+	// entity
+	entity := new(entity.LoginEntity)
 
+	// communicate repository
+	user, err := repo.repo.GetUser(ctx, body)
+	if err != nil {
+		return nil, err
+	}
+	entity.Name = user.Name
+
+	// communicate jwt middleware
 	token, err := middleware.GenerateNewAccessToken()
-	fmt.Println(token)
-	return err
+	if err != nil {
+		return nil, err
+	}
+	entity.AccessToken = token.Token
+	entity.AccessTokenExpired = token.Expired
+
+	// response
+	return entity, nil
 }
 
 func (repo *userController) Logout() error {

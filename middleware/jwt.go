@@ -37,11 +37,18 @@ func jwtError(c *fiber.Ctx, err error) error {
 }
 
 // generate
-func GenerateNewAccessToken() (string, error) {
+type AccessToken struct {
+	Token   string
+	Expired int64
+}
+
+func GenerateNewAccessToken() (*AccessToken, error) {
+	accessToken := new(AccessToken)
 	secret := os.Getenv("JWT_SECRET_KEY")
 	minutesCount, _ := strconv.Atoi(os.Getenv("JWT_SECRET_KEY_EXPIRE_MINUTE_COUNT"))
 	claims := jwt.MapClaims{}
 	claims["exp"] = time.Now().Add(time.Minute * time.Duration(minutesCount)).Unix()
+	accessToken.Expired = claims["exp"].(int64)
 
 	// Create a new JWT access token with claims.
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
@@ -49,9 +56,10 @@ func GenerateNewAccessToken() (string, error) {
 	// Generate token.
 	t, err := token.SignedString([]byte(secret))
 	if err != nil {
-		return "", err
+		return nil, err
 	}
-	return t, nil
+	accessToken.Token = t
+	return accessToken, nil
 }
 
 // parser

@@ -47,7 +47,8 @@ func (service authService) Login(c *fiber.Ctx) error {
 	}
 
 	// communicate service
-	if err := service.service.Login(c.Context(), &body); err != nil {
+	entity, err := service.service.Login(c.Context(), &body)
+	if err != nil {
 		return c.Status(fiber.StatusBadGateway).JSON(fiber.Map{
 			"data":    err.Error(),
 			"message": "bad",
@@ -56,7 +57,7 @@ func (service authService) Login(c *fiber.Ctx) error {
 
 	// response ok
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
-		"data":    "login",
+		"data":    entity,
 		"message": "ok",
 	})
 }
