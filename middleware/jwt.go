@@ -1,6 +1,10 @@
 package middleware
 
 import (
+	"context"
+	"database/sql"
+	"errors"
+	"fmt"
 	"os"
 	"strconv"
 	"strings"
@@ -9,6 +13,8 @@ import (
 	"github.com/gofiber/fiber/v2"
 	jwtMiddleware "github.com/gofiber/jwt/v2"
 	"github.com/golang-jwt/jwt/v4"
+	"github.com/google/uuid"
+	"github.com/riyan-eng/api-auth/config"
 )
 
 // for middleware
@@ -113,4 +119,78 @@ func verifyToken(bearToken string) (*jwt.Token, error) {
 
 func jwtKeyFunc(token *jwt.Token) (interface{}, error) {
 	return []byte(os.Getenv("JWT_SECRET_KEY")), nil
+}
+
+type RefreshToken struct {
+	Token   string
+	UserID  string
+	Expired int64
+}
+
+func GenerateNewRefreshToken(userID string) (*RefreshToken, error) {
+	var err error
+	refreshToken := new(RefreshToken)
+	refreshToken.Token = uuid.NewString()
+	refreshToken.UserID = userID
+
+	validUntil := time.Now().Add(time.Minute * 30).Format(time.RFC3339)
+
+	// query
+	queryDeleteToken := fmt.Sprintf(`
+		delete from management.refresh_token where user_id='%s'
+	`, userID)
+	queryInsertToken := fmt.Sprintf(`
+		insert into management.refresh_token(id, user_id, valid_until) values('%s', '%s', '%v')
+	`, refreshToken.Token, userID, validUntil)
+
+	// transaction
+	ctx := context.Background()
+	tx, _ := config.DB.BeginTx(ctx, nil)
+	defer tx.Rollback()
+
+	_, err = tx.Exec(queryDeleteToken)
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = tx.Exec(queryInsertToken)
+	if err != nil {
+		return nil, err
+	}
+
+	if err = tx.Commit(); err != nil {
+		return nil, err
+	}
+	return refreshToken, nil
+}
+
+type RefreshTokenMetaData struct {
+	Valid  bool
+	UserID string
+}
+
+func ValidRefreshToken(bearToken string) (*RefreshTokenMetaData, error) {
+	refreshTokenMetaData := new(RefreshTokenMetaData)
+
+	token := extractToken(bearToken)
+	var expiry time.Time
+	var userID string
+	query := fmt.Sprintf(`
+		select rt.user_id, rt.valid_until from management.refresh_token rt where rt.id='%s'
+	`, token)
+	err := config.DB.QueryRow(query).Scan(&userID, &expiry)
+
+	if err == sql.ErrNoRows {
+		return refreshTokenMetaData, errors.New("token can't use")
+	} else if err != nil {
+		return refreshTokenMetaData, err
+	}
+
+	if time.Now().Before(expiry) {
+		refreshTokenMetaData.Valid = true
+		refreshTokenMetaData.UserID = userID
+		return refreshTokenMetaData, nil
+	}
+
+	return refreshTokenMetaData, errors.New("token expired")
 }

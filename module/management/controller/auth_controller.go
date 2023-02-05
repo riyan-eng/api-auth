@@ -24,6 +24,7 @@ func NewAuthController(service service.AuthService, route *fiber.App) {
 	authRoute := route.Group("/auth")
 	authRoute.Post("/register", s.Register)
 	authRoute.Post("/login", s.Login)
+	authRoute.Post("/refresh", s.Refresh)
 	authRoute.Post("/logout", middleware.JWTProtected(), s.Logout)
 }
 
@@ -109,6 +110,22 @@ func (service authService) Logout(c *fiber.Ctx) error {
 
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"data":    data,
+		"message": "ok",
+	})
+}
+
+func (service authService) Refresh(c *fiber.Ctx) error {
+	bearerToken := c.Get("Authorization")
+	valid, err := service.Auth.Refresh(bearerToken)
+	if err != nil {
+		return c.Status(fiber.StatusBadGateway).JSON(fiber.Map{
+			"data":    err.Error(),
+			"message": "bad",
+		})
+	}
+	// fmt.Println(valid)
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"data":    valid,
 		"message": "ok",
 	})
 }

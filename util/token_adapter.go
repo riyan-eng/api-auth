@@ -1,6 +1,7 @@
-package config
+package util
 
 import (
+	"fmt"
 	"log"
 
 	fibercasbinrest "github.com/prongbang/fiber-casbinrest"
@@ -15,6 +16,7 @@ func NewTokenAdapter() fibercasbinrest.Adapter {
 }
 
 func (r *tokenAdapter) GetRoleByToken(bearToken string) ([]string, error) {
+	fmt.Println(bearToken)
 	metaData, err := middleware.ExtractTokenMetadata("Bearer " + bearToken)
 	if err != nil {
 		log.Fatal(err.Error())
